@@ -38,7 +38,7 @@ app.post("/login", (req, res) => {
         return res.status(200).json({
           success: true,
           message: "connexion OK",
-          userFound,
+          user,
         });
       } else {
         return res
@@ -48,6 +48,41 @@ app.post("/login", (req, res) => {
     },
   );
 });
+
+
+
+function findAllUsers(callback) {
+  const sql =
+    "SELECT id, mail, role FROM users";
+
+  db.all(sql, (err, user) => {
+    if (err) {
+      return callback(null);
+    }
+    callback(user);
+  });
+}
+
+app.get("/users", (req, res) => {
+
+  findAllUsers(
+    (user) => {
+      if (user) {
+        return res.status(200).json({
+          success: true,
+          message: "Tous les utilisateurs trouvés",
+          user,
+        });
+      } else {
+        return res
+          .status(400)
+          .json({ success: false, message: "Utilisateurs non trouvés" });
+      }
+    },
+  );
+});
+
+
 
 app.listen(3000, () => {
   console.log("Serveur démarré sur le port 3000");
