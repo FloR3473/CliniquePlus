@@ -1,29 +1,54 @@
 const express = require("express");
 const app = express();
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('BddCliniquePlus.db')
+const sqlite3 = require("sqlite3").verbose();
+const db = new sqlite3.Database("BddCliniquePlus.db");
 
-app.use(express.json())
+// const userModel = require('./userModel');
 
+app.use(express.json());
 
-app.post("/login", (req,res) =>{
-    if (!req.body){
-        return res.status(400).json({success: false, message:"Body manquant"});
+function findUserByMailAndPassword(mail, password, callback) {
+  const sql =
+    "SELECT id, mail, role FROM users WHERE mail = ? AND password = ?";
+
+  db.get(sql, [mail, password], (err, user) => {
+    if (err) {
+      return callback(null);
     }
-    const {mail, password} = req.body;
-    
-    const sql = "SELECT id, mail, role FROM users WHERE mail = ? AND password = ?";
+    callback(user);
+  });
+}
 
-    db.get(sql, [mail, password], (err, user) => {
-        if (err) return res.status(500).json({ message: "Erreur serveur" });
-        if (user) {
-            res.json({ message: "Connexion réussie", user });
-        } else {
-            res.status(401).json({ message: "Identifiants invalides" });
-        }
+app.post("/login", (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ success: false, message: "Body manquant" });
+  }
+
+  const { mail, password } = req.body;
+
+  if (!mail || !password) {
+    return res.status(400).json({ success: false, message: "Body malformé" });
+  }
+
+  findUserByMailAndPassword(
+    mail,
+    password,
+    (user) => {
+      if (user) {
+        return res.status(200).json({
+          success: true,
+          message: "connexion OK",
+          userFound,
         });
+      } else {
+        return res
+          .status(400)
+          .json({ success: false, message: "Identifiants incorrects" });
+      }
+    },
+  );
 });
 
 app.listen(3000, () => {
-    console.log("Serveur démarré sur le port 3000");
+  console.log("Serveur démarré sur le port 3000");
 });
