@@ -1,7 +1,5 @@
 const express = require("express");
 const app = express();
-const sqlite3 = require("sqlite3").verbose();
-const db = new sqlite3.Database("BddCliniquePlus.db");
 
 const userModel = require('./userModel');
 
@@ -64,29 +62,7 @@ app.get("/users", (req, res) => {
 });
 
 //déclarer la fonction pour ajouter des utilisateurs
-function addUser(mail, password, role, callback) {
-  const sql =
-    "INSERT OR IGNORE INTO users (mail, password, role) VALUES (?, ?, ?)";
 
-  db.run(sql, [mail, password, role], function (err) {
-    if (err) {
-      console.error("Erreur insertion utilisateur :", err.message);
-      return callback(null);
-    }
-
-    if (this.changes === 0) {
-      console.log("Utilisateur déjà existant");
-      return callback(null);
-    }
-
-    console.log("Utilisateur créé");
-    return callback({
-      id: this.lastID,
-      mail,
-      role,
-    });
-  });
-}
 
 //envoi de la demande au serveur et de la réponse attendu pour addUser
 app.post("/register", (req, res) => {
@@ -99,7 +75,7 @@ app.post("/register", (req, res) => {
     });
   }
 
-  addUser(mail, password, role, (user) => {
+ userModel.addUser(mail, password, role, (user) => {
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -116,28 +92,6 @@ app.post("/register", (req, res) => {
 });
 
 //déclarer la fonction pour modifier le mail
-function updateUserMail(mail,id,callback) {
-  const sql =
-    "UPDATE users SET mail = ? WHERE id =?";
-
-  db.run(sql, [mail,id], function (err) {
-    if (err) {
-      console.error("Erreur modification mail :", err.message);
-    return callback(null);
-    }
-
-    if (this.changes === 0) {
-      console.log("Mail non modifié");
-    return callback(null);
-    }
-
-    console.log("Mail modifié");
-    return callback({
-      id,
-      mail
-    });
-  });
-}
 
 //envoi de la demande au serveur et de la réponse attendu pour updateUserMail
 app.put("/updatemail", (req, res) => {
@@ -150,7 +104,7 @@ app.put("/updatemail", (req, res) => {
     });
   }
 
-  updateUserMail(mail, id,(user) => {
+  userModel.updateUserMail(mail, id,(user) => {
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -167,28 +121,7 @@ app.put("/updatemail", (req, res) => {
 });
 
 //déclarer la fonction pour modifier le password
-function updateUserPassword(password,id,callback) {
-  const sql =
-    "UPDATE users SET password = ? WHERE id =?";
 
-  db.run(sql, [password,id], function (err) {
-    if (err) {
-      console.error("Erreur modification password :", err.message);
-    return callback(null);
-    }
-
-    if (this.changes === 0) {
-      console.log("Password non modifié");
-    return callback(null);
-    }
-
-    console.log("Password modifié");
-    return callback({
-      id,
-      password
-    });
-  });
-}
 
 //envoi de la demande au serveur et de la réponse attendu pour updateUserPassword
 app.put("/updatepass", (req, res) => {
@@ -201,7 +134,7 @@ app.put("/updatepass", (req, res) => {
     });
   }
 
-  updateUserMail(password, id,(user) => {
+  userModel.updateUserMail(password, id,(user) => {
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -218,24 +151,6 @@ app.put("/updatepass", (req, res) => {
 });
 
 //déclarer la fonction pour supprimer un utilisateur
-function deleteUser(mail, callback) {
-  const sql = "DELETE FROM users WHERE mail = ?";
-
-  db.run(sql, [mail], function (err) {
-    if (err) {
-      console.error("Erreur dans la suppression utilisateur :", err.message);
-      return callback(err, null);
-    }
-
-    if (this.changes === 0) {
-      console.log("Aucun utilisateur trouvé");
-      return callback(null, false);
-    }
-
-    console.log("Utilisateur supprimé");
-    return callback(null, true);
-  });
-}
 
 // déclarer la requête de suppression de l'utilisateur
 app.delete("/delete/:mail", (req, res) => {
@@ -244,7 +159,7 @@ app.delete("/delete/:mail", (req, res) => {
     return res.status(400).json({ success: false, message: "Paramètre manquant" });
   }
   
-  deleteUser(mail, (err, user) => {
+ userModel.deleteUser(mail, (err, user) => {
     if (err){
       return res.status(500).json({
         success: false,
