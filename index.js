@@ -3,22 +3,11 @@ const app = express();
 const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database("BddCliniquePlus.db");
 
-// const userModel = require('./userModel');
+const userModel = require('./userModel');
 
 app.use(express.json());
 
 // Déclaration fonction de vérification connexion
-function findUserByMailAndPassword(mail, password, callback) {
-  const sql =
-    "SELECT id, mail, role FROM users WHERE mail = ? AND password = ?";
-
-  db.get(sql, [mail, password], (err, user) => {
-    if (err) {
-      return callback(null);
-    }
-    callback(user);
-  });
-}
 
 // envoi de la demande au serveur et de la réponse attendu pour findUserByMailAndPassword
 app.post("/login", (req, res) => {
@@ -32,7 +21,7 @@ app.post("/login", (req, res) => {
     return res.status(400).json({ success: false, message: "Body malformé" });
   }
 
-  findUserByMailAndPassword(
+  userModel.findUserByMailAndPassword(
     mail,
     password,
     (user) => {
@@ -53,22 +42,11 @@ app.post("/login", (req, res) => {
 
 
 // déclaration de la fonction voir tous les utilisateurs qui sont enregistrer dans la Bdd
-function findAllUsers(callback) {
-  const sql =
-    "SELECT id, mail, role FROM users";
-
-  db.all(sql, (err, user) => {
-    if (err) {
-      return callback(null);
-    }
-    callback(user);
-  });
-}
 
 //envoi de la demande au serveur et de la réponse attendu pour findAllUsers
 app.get("/users", (req, res) => {
 
-  findAllUsers(
+  userModel.findAllUsers(
     (user) => {
       if (user) {
         return res.status(200).json({
