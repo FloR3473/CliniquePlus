@@ -137,7 +137,7 @@ app.post("/register", (req, res) => {
   });
 });
 
-//déclarer la fonction pour modifier le mail ou passeword
+//déclarer la fonction pour modifier le mail
 function updateUserMail(mail,id,callback) {
   const sql =
     "UPDATE users SET mail = ? WHERE id =?";
@@ -161,8 +161,8 @@ function updateUserMail(mail,id,callback) {
   });
 }
 
-//envoi de la demande au serveur et de la réponse attendu pour updateUser
-app.put("/update", (req, res) => {
+//envoi de la demande au serveur et de la réponse attendu pour updateUserMail
+app.put("/updatemail", (req, res) => {
   const {mail, id} = req.body;
 
   if (!id || !mail) {
@@ -188,8 +188,62 @@ app.put("/update", (req, res) => {
   });
 });
 
+//déclarer la fonction pour modifier le password
+function updateUserPassword(password,id,callback) {
+  const sql =
+    "UPDATE users SET password = ? WHERE id =?";
+
+  db.run(sql, [password,id], function (err) {
+    if (err) {
+      console.error("Erreur modification password :", err.message);
+    return callback(null);
+    }
+
+    if (this.changes === 0) {
+      console.log("Password non modifié");
+    return callback(null);
+    }
+
+    console.log("Password modifié");
+    return callback({
+      id,
+      password
+    });
+  });
+}
+
+//envoi de la demande au serveur et de la réponse attendu pour updateUserPassword
+app.put("/updatepass", (req, res) => {
+  const {password, id} = req.body;
+
+  if (!id || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "Body malformé",
+    });
+  }
+
+  updateUserMail(password, id,(user) => {
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Profil non modifié",
+      });
+    }
+    else (user)
+      return res.status(200).json({
+      success: true,
+      message: "Profil modifié",
+      user,
+    });
+  });
+});
+
+
+
 
 //définition du port pour le seveur
 app.listen(3000, () => {
   console.log("Serveur démarré sur le port 3000");
 });
+
