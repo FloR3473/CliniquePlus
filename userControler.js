@@ -2,7 +2,7 @@
 const userModel= require("./userModel");
 
 //Déclaration de la requête pour vérifier la connexion d'un utilisateur
-function findUserByMailAndPassword (req, res) {
+async function findUserByMailAndPassword (req, res) {
   if (!req.body) {
     return res.status(400).json({ success: false, message: "Body manquant" });
   }
@@ -13,7 +13,7 @@ function findUserByMailAndPassword (req, res) {
     return res.status(400).json({ success: false, message: "Body malformé" });
   }
 
-  userModel.findUserByMailAndPassword(
+  await userModel.findUserByMailAndPassword(
     mail,
     password,
     (user) => {
@@ -34,9 +34,9 @@ function findUserByMailAndPassword (req, res) {
 
 
 //Déclaration de la requête voir tous les utilisateurs qui sont enregistrer dans la Bdd
-function findAllUsers (req, res) {
+async function findAllUsers (req, res) {
 
-  userModel.findAllUsers(
+ await userModel.findAllUsers(
     (user) => {
       if (user) {
         return res.status(200).json({
@@ -81,7 +81,7 @@ async function addUser (req, res) {
 };
 
 //Déclaration de la requête pour modifier le mail de l'utilisateur
-function updateUserMail (req, res)  {
+async function updateUserMail (req, res)  {
   const {mail, id} = req.body;
 
   if (!id || !mail) {
@@ -91,7 +91,7 @@ function updateUserMail (req, res)  {
     });
   }
 
-  userModel.updateUserMail(mail, id,(user) => {
+  await userModel.updateUserMail(mail, id,(user) => {
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -108,7 +108,7 @@ function updateUserMail (req, res)  {
 };
 
 //Déclaration de la requête pour modifier le password de l'utilisateur
-function updateUserPassword (req, res) {
+async function updateUserPassword (req, res) {
   const {password, id} = req.body;
 
   if (!id || !password) {
@@ -118,7 +118,7 @@ function updateUserPassword (req, res) {
     });
   }
 
-  userModel.updateUserPassword(password, id,(user) => {
+  await userModel.updateUserPassword(password, id,(user) => {
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -135,13 +135,13 @@ function updateUserPassword (req, res) {
 };
 
 // Déclaration de la requête pour supprimer un utilisateur
-function deleteUser(req, res) {
+async function deleteUser(req, res) {
   const { mail } = req.params;  
   if (!mail) {
     return res.status(400).json({ success: false, message: "Paramètre manquant" });
   }
   
- userModel.deleteUser(mail, (err, user) => {
+ await userModel.deleteUser(mail, (err, user) => {
     if (err){
       return res.status(500).json({
         success: false,
