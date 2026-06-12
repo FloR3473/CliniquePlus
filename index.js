@@ -84,6 +84,62 @@ app.get("/users", (req, res) => {
 
 
 
+// ajouter un utlisateur
+//déclarer la fonction
+function addUser(mail, password, role, callback) {
+  const sql =
+    "INSERT OR IGNORE INTO users (mail, password, role) VALUES (?, ?, ?)";
+
+  db.run(sql, [mail, password, role], function (err) {
+    if (err) {
+      console.error("Erreur insertion utilisateur :", err.message);
+      return callback(null);
+    }
+
+    if (this.changes === 0) {
+      console.log("Utilisateur déjà existant");
+      return callback(null);
+    }
+
+    console.log("Utilisateur créé");
+    return callback({
+      id: this.lastID,
+      mail,
+      role,
+    });
+  });
+}
+// déclarer la requête 
+
+
+app.post("/register", (req, res) => {
+  const { mail, password, role } = req.body;
+
+  if (!mail || !password || !role) {
+    return res.status(400).json({
+      success: false,
+      message: "Body malformé",
+    });
+  }
+
+  addUser(mail, password, role, (user) => {
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Utilisateur déjà existant",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "profil créé",
+      user,
+    });
+  });
+});
+
+
+
 app.listen(3000, () => {
   console.log("Serveur démarré sur le port 3000");
 });
