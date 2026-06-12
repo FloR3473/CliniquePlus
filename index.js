@@ -7,6 +7,7 @@ const db = new sqlite3.Database("BddCliniquePlus.db");
 
 app.use(express.json());
 
+// Déclaration fonction de vérification connexion
 function findUserByMailAndPassword(mail, password, callback) {
   const sql =
     "SELECT id, mail, role FROM users WHERE mail = ? AND password = ?";
@@ -19,6 +20,7 @@ function findUserByMailAndPassword(mail, password, callback) {
   });
 }
 
+// envoi de la demande au serveur et de la réponse attendu pour findUserByMailAndPassword
 app.post("/login", (req, res) => {
   if (!req.body) {
     return res.status(400).json({ success: false, message: "Body manquant" });
@@ -50,7 +52,7 @@ app.post("/login", (req, res) => {
 });
 
 
-
+// déclaration de la fonction voir tous les utilisateurs qui sont enregistrer dans la Bdd
 function findAllUsers(callback) {
   const sql =
     "SELECT id, mail, role FROM users";
@@ -63,6 +65,7 @@ function findAllUsers(callback) {
   });
 }
 
+//envoi de la demande au serveur et de la réponse attendu pour findAllUsers
 app.get("/users", (req, res) => {
 
   findAllUsers(
@@ -82,10 +85,7 @@ app.get("/users", (req, res) => {
   );
 });
 
-
-
-// ajouter un utlisateur
-//déclarer la fonction
+//déclarer la fonction pour ajouter des utilisateurs
 function addUser(mail, password, role, callback) {
   const sql =
     "INSERT OR IGNORE INTO users (mail, password, role) VALUES (?, ?, ?)";
@@ -109,9 +109,8 @@ function addUser(mail, password, role, callback) {
     });
   });
 }
-// déclarer la requête 
 
-
+//envoi de la demande au serveur et de la réponse attendu pour addUser
 app.post("/register", (req, res) => {
   const { mail, password, role } = req.body;
 
@@ -138,8 +137,59 @@ app.post("/register", (req, res) => {
   });
 });
 
+//déclarer la fonction pour modifier le mail ou passeword
+function updateUserMail(mail,id,callback) {
+  const sql =
+    "UPDATE users SET mail = ? WHERE id =?";
+
+  db.run(sql, [mail,id], function (err) {
+    if (err) {
+      console.error("Erreur modification mail :", err.message);
+    return callback(null);
+    }
+
+    if (this.changes === 0) {
+      console.log("Mail non modifié");
+    return callback(null);
+    }
+
+    console.log("Mail modifié");
+    return callback({
+      id,
+      mail
+    });
+  });
+}
+
+//envoi de la demande au serveur et de la réponse attendu pour updateUser
+app.put("/update", (req, res) => {
+  const {mail, id} = req.body;
+
+  if (!id || !mail) {
+    return res.status(400).json({
+      success: false,
+      message: "Body malformé",
+    });
+  }
+
+  updateUserMail(mail, id,(user) => {
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Profil non modifié",
+      });
+    }
+    else (user)
+      return res.status(200).json({
+      success: true,
+      message: "Profil modifié",
+      user,
+    });
+  });
+});
 
 
+//définition du port pour le seveur
 app.listen(3000, () => {
   console.log("Serveur démarré sur le port 3000");
 });
