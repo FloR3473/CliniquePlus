@@ -239,7 +239,54 @@ app.put("/updatepass", (req, res) => {
   });
 });
 
+//déclarer la fonction pour supprimer un utilisateur
+function deleteUser(mail, callback) {
+  const sql = "DELETE FROM users WHERE mail = ?";
 
+  db.run(sql, [mail], function (err) {
+    if (err) {
+      console.error("Erreur dans la suppression utilisateur :", err.message);
+      return callback(err, null);
+    }
+
+    if (this.changes === 0) {
+      console.log("Aucun utilisateur trouvé");
+      return callback(null, false);
+    }
+
+    console.log("Utilisateur supprimé");
+    return callback(null, true);
+  });
+}
+
+// déclarer la requête de suppression de l'utilisateur
+app.delete("/delete/:mail", (req, res) => {
+  const { mail } = req.params;  
+  if (!mail) {
+    return res.status(400).json({ success: false, message: "Paramètre manquant" });
+  }
+  
+  deleteUser(mail, (err, user) => {
+    if (err){
+      return res.status(500).json({
+        success: false,
+        message: "Erreur dans la suppression utilisateur",
+    })
+  }
+    if (user === false) {
+      return res.status(400).json({
+        success: false,
+        message: "Utilisateur non trouvé",
+      });
+    
+  } else if (user === true) {
+    return res.status(200).json({
+      success: true,
+      message: "Utilisateur supprimé",
+    });
+  }
+  });
+});
 
 
 //définition du port pour le seveur
